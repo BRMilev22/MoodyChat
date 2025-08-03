@@ -53,7 +53,7 @@ enum Mood: String, CaseIterable, Codable {
     var primaryColor: Color {
         switch self {
         case .happy: return .yellow
-        case .sad: return .blue
+        case .sad: return .cyan
         case .excited: return .orange
         case .angry: return .red
         case .neutral: return .gray
@@ -68,7 +68,7 @@ enum Mood: String, CaseIterable, Codable {
     var gradientColors: [Color] {
         switch self {
         case .happy: return [.yellow, .orange]
-        case .sad: return [.blue, .indigo]
+        case .sad: return [.cyan, .blue]
         case .excited: return [.orange, .red]
         case .angry: return [.red, .pink]
         case .neutral: return [.gray, .secondary]

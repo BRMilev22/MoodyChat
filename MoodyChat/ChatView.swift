@@ -9,18 +9,26 @@ import SwiftUI
 
 struct ChatView: View {
     @StateObject private var conversationManager = ConversationManager()
+    @StateObject private var aiService = AIEnhancedSentimentService.shared
+    @StateObject private var moodDetector = ProgressiveMoodDetector.shared
     @State private var messageText = ""
-    @State private var currentMood: Mood = .neutral
     @State private var keyboardHeight: CGFloat = 0
     @State private var isTyping = false
+    @State private var showAnalytics = false
+    @State private var showCoaching = false
+    @State private var showJournal = false
     @Namespace private var messagesNamespace
     
     var body: some View {
         GeometryReader { geometry in
             ZStack {
-                // Dynamic background that responds to mood
-                GlassmorphismBackground(mood: currentMood)
+                // Progressive mood-responsive background
+                Color.clear
+                    .adaptiveMoodBackground(moodDetector.uiIntensity)
                     .ignoresSafeArea()
+                    .onChange(of: moodDetector.uiIntensity) { oldValue, newValue in
+                        print("🎨 Background changed from \(oldValue.description) to \(newValue.description)")
+                    }
                 
                 VStack(spacing: 0) {
                     // Custom navigation header
@@ -29,13 +37,55 @@ struct ChatView: View {
                     // Messages container with perfect spacing
                     messagesContainer(geometry: geometry)
                     
-                    // Input area with liquid glass design
-                    inputContainer
+                    // Dynamic mood-responsive input
+                    DynamicInputField(
+                        messageText: $messageText,
+                        isTyping: $isTyping,
+                        currentMood: moodDetector.currentMood,
+                        moodConfidence: moodDetector.moodConfidence,
+                        onSend: sendMessage
+                    )
                 }
-                .animation(.spring(response: 0.6, dampingFraction: 0.8), value: currentMood)
+                .animation(.spring(response: 0.6, dampingFraction: 0.9), value: moodDetector.uiIntensity.description)
+                
+                // Stunning mood transition overlay with clean animation
+                if moodDetector.transitionCoordinator.isShowingTransition {
+                    MoodTransitionAnimator(
+                        fromMood: moodDetector.transitionCoordinator.transitionFromMood,
+                        toMood: moodDetector.transitionCoordinator.transitionToMood,
+                        confidence: moodDetector.transitionCoordinator.transitionConfidence,
+                        isVisible: moodDetector.transitionCoordinator.isShowingTransition,
+                        onComplete: {
+                            print("🎬 Transition animation completed!")
+                            withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                                if let (newMood, newConfidence) = moodDetector.transitionCoordinator.completeTransition() {
+                                    print("🎭 Applying final mood: \(newMood.displayName) with confidence: \(newConfidence)")
+                                    moodDetector.applyMoodTransition(mood: newMood, confidence: newConfidence)
+                                }
+                            }
+                        }
+                    )
+                    .zIndex(1000)
+                    .transition(.asymmetric(
+                        insertion: .scale(scale: 0.9, anchor: .center).combined(with: .opacity),
+                        removal: .scale(scale: 1.1, anchor: .center).combined(with: .opacity)
+                    ))
+                    .onAppear {
+                        print("🎬 ChatView: MoodTransitionAnimator added to view hierarchy")
+                    }
+                }
             }
         }
         .navigationBarHidden(true)
+        .sheet(isPresented: $showAnalytics) {
+            MoodAnalyticsView()
+        }
+        .sheet(isPresented: $showCoaching) {
+            EmotionalCoachingView()
+        }
+        .sheet(isPresented: $showJournal) {
+            MoodJournalView()
+        }
         .onAppear {
             setupConversation()
             observeKeyboard()
@@ -44,7 +94,7 @@ struct ChatView: View {
     
     private var customNavigationHeader: some View {
         HStack {
-            // Back button with glass effect
+            // Back button with adaptive glass effect
             Button(action: { /* Navigate back */ }) {
                 Image(systemName: "chevron.left")
                     .font(.title2)
@@ -53,8 +103,8 @@ struct ChatView: View {
                     .frame(width: 44, height: 44)
                     .background(
                         Circle()
-                            .fill(.ultraThinMaterial)
-                            .shadow(color: currentMood.primaryColor.opacity(0.2), radius: 8, x: 0, y: 4)
+                            .fill(AdaptiveUISystem.glassIntensity(for: moodDetector.uiIntensity))
+                            .shadow(color: moodDetector.currentMood.primaryColor.opacity(moodDetector.moodConfidence * 0.3), radius: 8, x: 0, y: 4)
                     )
             }
             
@@ -68,34 +118,81 @@ struct ChatView: View {
                         .fontWeight(.semibold)
                         .foregroundColor(.primary)
                     
-                    // Animated mood emoji
-                    Text(currentMood.emoji)
-                        .font(.title3)
-                        .scaleEffect(isTyping ? 1.2 : 1.0)
-                        .animation(.spring(response: 0.3, dampingFraction: 0.6).repeatCount(2), value: isTyping)
+                    // Progressive mood indicator with AI analysis status
+                    HStack(spacing: 4) {
+                        Text(moodDetector.currentMood.emoji)
+                            .font(.title3)
+                            .scaleEffect(isTyping ? 1.2 : 1.0)
+                            .animation(.spring(response: 0.3, dampingFraction: 0.6).repeatCount(2), value: isTyping)
+                        
+                        // AI analysis indicator
+                        if moodDetector.transitionCoordinator.isShowingTransition {
+                            HStack(spacing: 3) {
+                                ForEach(0..<3, id: \.self) { index in
+                                    Circle()
+                                        .fill(moodDetector.currentMood.primaryColor)
+                                        .frame(width: 3, height: 3)
+                                        .scaleEffect(0.5)
+                                        .animation(
+                                            .easeInOut(duration: 0.6)
+                                            .repeatForever()
+                                            .delay(Double(index) * 0.2),
+                                            value: moodDetector.transitionCoordinator.isShowingTransition
+                                        )
+                                }
+                            }
+                        } else if moodDetector.moodConfidence > 0.1 {
+                            // Confidence indicator
+                            Circle()
+                                .fill(moodDetector.currentMood.primaryColor)
+                                .frame(width: 6, height: 6)
+                                .opacity(moodDetector.moodConfidence)
+                                .scaleEffect(moodDetector.moodConfidence > 0.8 ? 1.2 : 1.0)
+                                .animation(.easeInOut(duration: 0.5), value: moodDetector.moodConfidence)
+                        }
+                    }
                 }
                 
-                // Subtle mood indicator
-                Text(SentimentAnalysisService.shared.getCurrentAnalysisStrength())
+                // Progressive mood status
+                Text(moodDetector.uiIntensity.description)
                     .font(.caption2)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
                     .opacity(0.8)
+                    .animation(.easeInOut(duration: 0.3), value: moodDetector.uiIntensity)
             }
             
             Spacer()
             
-            // Settings/menu button
-            Button(action: { /* Show menu */ }) {
-                Image(systemName: "ellipsis.circle")
+            // AI Features menu
+            Menu {
+                Button(action: { showAnalytics = true }) {
+                    Label("Mood Analytics", systemImage: "chart.line.uptrend.xyaxis")
+                }
+                
+                Button(action: { showCoaching = true }) {
+                    Label("Emotional Coach", systemImage: "brain.head.profile")
+                }
+                
+                Button(action: { showJournal = true }) {
+                    Label("Mood Journal", systemImage: "book.closed")
+                }
+                
+                Divider()
+                
+                Button(action: { /* Settings */ }) {
+                    Label("Settings", systemImage: "gear")
+                }
+            } label: {
+                Image(systemName: "brain.head.profile")
                     .font(.title2)
                     .fontWeight(.medium)
                     .foregroundColor(.primary)
                     .frame(width: 44, height: 44)
                     .background(
                         Circle()
-                            .fill(.ultraThinMaterial)
-                            .shadow(color: currentMood.primaryColor.opacity(0.2), radius: 8, x: 0, y: 4)
+                            .fill(AdaptiveUISystem.glassIntensity(for: moodDetector.uiIntensity))
+                            .shadow(color: moodDetector.currentMood.primaryColor.opacity(moodDetector.moodConfidence * 0.3), radius: 8, x: 0, y: 4)
                     )
             }
         }
@@ -117,12 +214,17 @@ struct ChatView: View {
                     
                     if let conversation = conversationManager.currentConversation {
                         ForEach(conversation.messages) { message in
-                            MessageBubbleView(
+                            DynamicMessageBubble(
                                 message: message,
-                                currentMood: currentMood,
+                                currentMood: moodDetector.currentMood,
+                                moodConfidence: moodDetector.moodConfidence,
                                 namespace: messagesNamespace
                             )
                             .id(message.id)
+                            .transition(.asymmetric(
+                                insertion: .scale(scale: 0.8).combined(with: .opacity).combined(with: .offset(y: 20)),
+                                removal: .scale(scale: 0.9).combined(with: .opacity)
+                            ))
                         }
                     } else {
                         welcomeMessage
@@ -145,63 +247,106 @@ struct ChatView: View {
     }
     
     private var welcomeMessage: some View {
-        VStack(spacing: 24) {
-            // Animated welcome icon
+        VStack(spacing: 32) {
+            // Dynamic animated icon
             ZStack {
+                // Outer glow rings
+                ForEach(0..<3, id: \.self) { index in
+                    Circle()
+                        .stroke(
+                            moodDetector.currentMood.primaryColor.opacity(0.1 - Double(index) * 0.03),
+                            lineWidth: 2
+                        )
+                        .frame(width: CGFloat(140 + index * 30))
+                        .scaleEffect(1.0 + sin(Date().timeIntervalSinceReferenceDate + Double(index)) * 0.1)
+                }
+                
+                // Main background
                 Circle()
                     .fill(
                         RadialGradient(
-                            colors: [currentMood.primaryColor.opacity(0.2), currentMood.primaryColor.opacity(0.05)],
+                            colors: [
+                                moodDetector.currentMood.primaryColor.opacity(0.3),
+                                moodDetector.currentMood.primaryColor.opacity(0.1),
+                                moodDetector.currentMood.primaryColor.opacity(0.05)
+                            ],
                             center: .center,
-                            startRadius: 20,
-                            endRadius: 80
+                            startRadius: 10,
+                            endRadius: 70
                         )
                     )
-                    .frame(width: 120, height: 120)
+                    .frame(width: 140, height: 140)
                 
+                // Emoji with subtle animation
                 Text("🎭")
-                    .font(.system(size: 56))
-                    .scaleEffect(1.0)
-                    .animation(.easeInOut(duration: 2.0).repeatForever(autoreverses: true), value: currentMood)
+                    .font(.system(size: 64))
+                    .scaleEffect(1.0 + sin(Date().timeIntervalSinceReferenceDate * 2) * 0.05)
+                    .rotationEffect(.degrees(sin(Date().timeIntervalSinceReferenceDate) * 2))
             }
+            .animation(.easeInOut(duration: 3.0).repeatForever(autoreverses: true), value: moodDetector.currentMood)
             
-            VStack(spacing: 16) {
+            VStack(spacing: 20) {
                 Text("Welcome to MoodyChat")
-                    .font(.title)
+                    .font(.largeTitle)
                     .fontWeight(.bold)
-                    .foregroundColor(.primary)
+                    .foregroundStyle(
+                        LinearGradient(
+                            colors: [
+                                .primary,
+                                moodDetector.currentMood.primaryColor.opacity(0.8),
+                                .primary
+                            ],
+                            startPoint: .leading,
+                            endPoint: .trailing
+                        )
+                    )
                 
                 Text("Your emotions shape every conversation. Start typing to see the magic unfold as your mood transforms the entire experience.")
-                    .font(.body)
+                    .font(.title3)
                     .fontWeight(.medium)
                     .foregroundColor(.secondary)
                     .multilineTextAlignment(.center)
-                    .lineSpacing(4)
+                    .lineSpacing(6)
+                
+                // Feature highlights
+                VStack(spacing: 12) {
+                    FeatureRow(icon: "brain.head.profile", title: "AI Mood Detection", description: "Powered by OLLAMA")
+                    FeatureRow(icon: "sparkles", title: "Dynamic UI", description: "Liquid glass iOS 26 design")
+                    FeatureRow(icon: "heart.fill", title: "Emotional Intelligence", description: "Context-aware responses")
+                }
+                .padding(.top, 16)
             }
         }
         .padding(.horizontal, 32)
         .padding(.vertical, 40)
-        .background(
-            RoundedRectangle(cornerRadius: 24, style: .continuous)
-                .fill(.ultraThinMaterial)
-                .overlay(
-                    RoundedRectangle(cornerRadius: 24, style: .continuous)
-                        .stroke(
-                            LinearGradient(
-                                colors: [
-                                    currentMood.primaryColor.opacity(0.3),
-                                    currentMood.primaryColor.opacity(0.1),
-                                    Color.clear
-                                ],
-                                startPoint: .topLeading,
-                                endPoint: .bottomTrailing
-                            ),
-                            lineWidth: 1
-                        )
-                )
-                .shadow(color: currentMood.primaryColor.opacity(0.1), radius: 20, x: 0, y: 10)
-        )
-        .padding(.top, 60)
+        .adaptiveMoodCard(moodDetector.uiIntensity)
+        .padding(.top, 40)
+    }
+    
+    private func FeatureRow(icon: String, title: String, description: String) -> some View {
+        HStack(spacing: 12) {
+            Image(systemName: icon)
+                .font(.title3)
+                .fontWeight(.semibold)
+                .foregroundColor(moodDetector.currentMood.primaryColor)
+                .frame(width: 24)
+            
+            VStack(alignment: .leading, spacing: 2) {
+                Text(title)
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.primary)
+                
+                Text(description)
+                    .font(.caption)
+                    .fontWeight(.medium)
+                    .foregroundColor(.secondary)
+            }
+            
+            Spacer()
+        }
+        .padding(.horizontal, 16)
+        .padding(.vertical, 8)
     }
     
     private var inputContainer: some View {
@@ -210,7 +355,7 @@ struct ChatView: View {
             Rectangle()
                 .fill(
                     LinearGradient(
-                        colors: [Color.clear, currentMood.primaryColor.opacity(0.2), Color.clear],
+                        colors: [Color.clear, moodDetector.currentMood.primaryColor.opacity(moodDetector.moodConfidence * 0.3), Color.clear],
                         startPoint: .leading,
                         endPoint: .trailing
                     )
@@ -220,7 +365,7 @@ struct ChatView: View {
             // Input area
             ProfessionalMessageInput(
                 messageText: $messageText,
-                currentMood: $currentMood,
+                currentMood: .constant(moodDetector.currentMood),
                 isTyping: $isTyping,
                 onSend: sendMessage
             )
@@ -237,74 +382,29 @@ struct ChatView: View {
     private func sendMessage() {
         guard !messageText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else { return }
         
-        // Set typing state
-        withAnimation(.spring(response: 0.3, dampingFraction: 0.7)) {
-            isTyping = true
+        let currentMessage = messageText
+        
+        // STEP 1: Immediately display message and clear input
+        withAnimation(.easeOut(duration: 0.2)) {
+            messageText = ""
+            isTyping = false
         }
         
         Task {
-            await conversationManager.addMessage(messageText, isFromUser: true)
-            
-            // Update current mood with smooth animation
-            if let lastMessage = conversationManager.currentConversation?.messages.last,
-               let sentiment = lastMessage.sentiment,
-               sentiment.confidence > 0.6 {
-                withAnimation(.spring(response: 0.8, dampingFraction: 0.9)) {
-                    currentMood = sentiment.mood
-                }
-            }
-            
-            // Clear the input with animation
+            // STEP 2: Add message to conversation immediately (instant display)
             await MainActor.run {
-                withAnimation(.easeOut(duration: 0.3)) {
-                    messageText = ""
-                    isTyping = false
-                }
+                conversationManager.addMessageInstantly(currentMessage, isFromUser: true)
             }
             
-            // Simulate AI response with realistic delay
-            try? await Task.sleep(nanoseconds: UInt64.random(in: 1_000_000_000...2_500_000_000))
-            await generateAIResponse()
+            // STEP 3: Analyze mood in background (progressive learning)
+            await moodDetector.analyzeMessage(currentMessage)
         }
     }
     
     private func generateAIResponse() async {
-        let moodBasedResponses: [Mood: [String]] = [
-            .happy: [
-                "Your positive energy is contagious! What's been bringing you joy lately?",
-                "I love hearing the happiness in your message! Tell me more about what's going well.",
-                "That wonderful mood of yours is shining through! What's made your day so bright?"
-            ],
-            .excited: [
-                "Your excitement is electric! I can feel the energy in your words!",
-                "Wow, you sound absolutely thrilled! What's got you so pumped up?",
-                "That enthusiasm is amazing! Share more about what's getting you so excited!"
-            ],
-            .sad: [
-                "I can sense you're going through something difficult. I'm here to listen.",
-                "Your feelings are completely valid. Would you like to talk about what's weighing on you?",
-                "I'm here for you. Sometimes sharing what's on our hearts can help."
-            ],
-            .anxious: [
-                "I can feel the tension in your message. Take a deep breath - you're not alone in this.",
-                "Anxiety can be overwhelming. What's been on your mind lately?",
-                "I hear the worry in your words. Let's talk through what's causing you stress."
-            ],
-            .peaceful: [
-                "There's such a calm, centered energy in your message. How are you finding this peace?",
-                "Your tranquil mood is beautiful. What's helping you feel so balanced today?",
-                "I love the serene vibe you're sharing. Tell me about this peaceful moment."
-            ]
-        ]
-        
-        let responses = moodBasedResponses[currentMood] ?? [
-            "I'm here to listen and understand. What's on your mind?",
-            "Thanks for sharing that with me. How are you feeling right now?",
-            "I appreciate you opening up. What would you like to talk about?"
-        ]
-        
-        let selectedResponse = responses.randomElement() ?? "I'm here to chat with you!"
-        await conversationManager.addMessage(selectedResponse, isFromUser: false)
+        // Use the AI-enhanced service to generate contextual responses
+        let smartResponse = await conversationManager.generateSmartResponse(for: moodDetector.currentMood)
+        await conversationManager.addMessage(smartResponse, isFromUser: false)
     }
     
     private func setupConversation() {
