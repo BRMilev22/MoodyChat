@@ -227,7 +227,7 @@ For production deployment, the following MUST be implemented:
 This is a portfolio project demonstrating advanced iOS development concepts. Feedback and suggestions are welcome through GitHub issues.
 
 ## 📄 License
-© 2025 Boris Milev. All rights reserved.
+This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md) file for details.
 
 ---
 
