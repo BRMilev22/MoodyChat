@@ -1,7 +1,38 @@
 # MoodyChat 🎭
 *Where emotions shape conversations*
 
-## Overview
+<p align="center">
+  <img src="./MoodyChat/Assets.xcassets/AppIcon.appiconset/logo.png" width="120" alt="MoodyChat Light Logo">
+  <img src="./MoodyChat/Assets.xcassets/AppIcon.appiconset/logo-adrk.png" width="120" alt="MoodyChat Dark Logo">
+</p>
+
+<p align="center">
+  <strong>A revolutionary iOS chat application that dynamically adapts its UI based on emotional sentiment</strong>
+</p>
+
+---
+
+## 📋 Table of Contents
+
+- [Overview](#-overview)
+- [Author](#-author)
+- [App Showcase](#-app-showcase)
+  - [Welcome Experience](#welcome-experience)
+  - [Mood Detection in Action](#mood-detection-in-action)
+  - [Emotional Chat Experience](#emotional-chat-experience)
+- [Tech Stack](#-tech-stack)
+- [Project Structure](#-project-structure)
+- [Features](#-features)
+- [Setup Instructions](#-setup-instructions)
+- [Development Phases](#-development-phases)
+- [Future Enhancements](#-future-enhancements)
+- [Production Considerations](#️-production-considerations)
+- [Contributing](#-contributing)
+- [License](#-license)
+
+---
+
+## 🎯 Overview
 **This is a portfolio project and proof of concept.**
 
 MoodyChat is a revolutionary iOS chat application that dynamically adapts its user interface based on the emotional sentiment of conversations. This proof of concept demonstrates advanced SwiftUI techniques, liquid glass aesthetics, and AI-powered emotional intelligence.
@@ -10,11 +41,42 @@ Built with **Liquid Glass aesthetics** and Apple's latest iOS 26 design language
 
 > **Note**: This implementation currently uses OLLAMA AI models for mood detection as a proof of concept. In a production environment, **CoreML (on-device sentiment analysis) MUST be implemented** to ensure privacy, performance, and offline functionality.
 
-## Author
+## 👨‍💻 Author
 **Boris Milev**  
 GitHub: [https://github.com/BRMilev22](https://github.com/BRMilev22)
 
-## Tech Stack
+---
+
+## 📱 App Showcase
+
+### Welcome Experience
+*Beautiful onboarding with mood-adaptive backgrounds*
+
+<p align="center">
+  <img src="./assets/welcome-image-peaceful.png" width="250" alt="Peaceful Welcome">
+  <img src="./assets/welcome-image-love.png" width="250" alt="Loving Welcome">
+  <img src="./assets/welcome-image-excited.png" width="250" alt="Excited Welcome">
+</p>
+
+### Mood Detection in Action
+*Real-time mood detection with confidence-based UI adaptation*
+
+<p align="center">
+  <img src="./assets/mood-detected-happy-chat.png" width="300" alt="Happy Mood Detection">
+  <img src="./assets/mood-detected-angry-chat.png" width="300" alt="Angry Mood Detection">
+</p>
+
+### Emotional Chat Experience
+*Chat interface that transforms based on emotional sentiment*
+
+<p align="center">
+  <img src="./assets/neutral-chat.png" width="250" alt="Neutral Chat">
+  <img src="./assets/sad-chat.png" width="250" alt="Sad Mood Chat">
+</p>
+
+---
+
+## 🛠 Tech Stack
 - **Language**: Swift 5.9+
 - **Framework**: SwiftUI
 - **Architecture**: Combine + MVVM
@@ -22,7 +84,7 @@ GitHub: [https://github.com/BRMilev22](https://github.com/BRMilev22)
 - **Animation**: SwiftUI animations with liquid glass effects
 - **Minimum iOS**: 16.0+
 
-## Project Structure
+## 📁 Project Structure
 ```
 MoodyChat/
 ├── MoodyChat.xcodeproj/     # Xcode project files
@@ -44,7 +106,7 @@ MoodyChat/
 └── .gitignore
 ```
 
-## Features
+## ✨ Features
 
 ### 🎨 Emotional UI Adaptation
 - **Dynamic Color Themes**: Interface colors shift based on conversation sentiment
@@ -63,14 +125,7 @@ MoodyChat/
 - **Typing Indicators**: Even typing animations reflect emotional anticipation
 - **Conversation Insights**: Subtle mood summaries and conversation analytics
 
-## Screenshots
-*Coming Soon - Interface previews showcasing mood adaptations*
-
-![Happy Conversation](./Assets/Screenshots/happy-chat.png)
-![Melancholic Theme](./Assets/Screenshots/sad-theme.png)
-![Excited Interactions](./Assets/Screenshots/excited-ui.png)
-
-## Setup Instructions
+## 🚀 Setup Instructions
 
 ### Prerequisites
 - **Xcode 15.0+**
@@ -92,7 +147,7 @@ cd MoodyChat
 open MoodyChat.xcworkspace
 ```
 
-## Development Phases
+## 🔄 Development Phases
 
 ### Phase 1: Core Sentiment Foundation
 
@@ -124,7 +179,7 @@ open MoodyChat.xcworkspace
 - [x] Create intelligent message grouping and conversation flow
 - [x] Build conversation mood summary visualization (MoodIndicator component)
 
-### Phase 4: Advanced Mood Intelligence ✅
+### Phase 4: Advanced Mood Intelligence
 
 **Smart Features**
 - [x] Implement OLLAMA AI-powered conversation insights and mood patterns
@@ -136,7 +191,7 @@ open MoodyChat.xcworkspace
 
 > **Production Note**: Replace OLLAMA with CoreML for production deployment
 
-## Future Enhancements
+## 🎯 Future Enhancements
 
 ### 🚀 Stretch Goals
 - **Biometric Integration**: Heart rate and stress level correlation
@@ -148,7 +203,7 @@ open MoodyChat.xcworkspace
 - **Custom Themes**: User-created emotional color palettes
 - **AI Mood Coach**: Personalized emotional intelligence insights
 
-## Production Considerations
+## ⚙️ Production Considerations
 
 ### CoreML Integration Requirements
 For production deployment, the following MUST be implemented:
@@ -168,10 +223,10 @@ For production deployment, the following MUST be implemented:
    - Implement local-only data processing
    - Add user consent and data control features
 
-## Contributing
+## 🤝 Contributing
 This is a portfolio project demonstrating advanced iOS development concepts. Feedback and suggestions are welcome through GitHub issues.
 
-## License
+## 📄 License
 © 2025 Boris Milev. All rights reserved.
 
 ---
