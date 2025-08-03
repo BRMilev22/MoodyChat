@@ -2,8 +2,8 @@
 *Where emotions shape conversations*
 
 <p align="center">
-  <img src="./MoodyChat/Assets.xcassets/AppIcon.appiconset/logo.png" width="120" alt="MoodyChat Light Logo">
-  <img src="./MoodyChat/Assets.xcassets/AppIcon.appiconset/logo-adrk.png" width="120" alt="MoodyChat Dark Logo">
+  <img src="./assets/logo.png" width="120" alt="MoodyChat Light Logo">
+  <img src="./assets/logo-dark.png" width="120" alt="MoodyChat Dark Logo">
 </p>
 
 <p align="center">
@@ -42,7 +42,7 @@ Built with **Liquid Glass aesthetics** and Apple's latest iOS 26 design language
 > **Note**: This implementation currently uses OLLAMA AI models for mood detection as a proof of concept. In a production environment, **CoreML (on-device sentiment analysis) MUST be implemented** to ensure privacy, performance, and offline functionality.
 
 ## 👨‍💻 Author
-**Boris Milev**  
+**Boris Milev**
 GitHub: [https://github.com/BRMilev22](https://github.com/BRMilev22)
 
 ---
